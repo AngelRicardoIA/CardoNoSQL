@@ -1,8 +1,10 @@
 import os
 import random
+from cartas import obtener_cartas
 
 def limpiar():
     os.system('cls' if os.name == 'nt' else 'clear')
+
 
 def pedir_jugador(numero):
     nombre = input(f"Ingrese el nombre del jugador {numero}: ")
@@ -12,51 +14,107 @@ def pedir_jugador(numero):
     limpiar()
     return nombre
 
-limpiar()
 
-print("¡Bienvenido a Cardo: Juego de cartas")
+def pedir_rondas():
+    print("¿Cuántas rondas desean jugar (mínimo 3, máximo 10)? ")
+    entrada = input()
 
-jugador1 = pedir_jugador(1)
-jugador2 = pedir_jugador(2)
+    if entrada.isdigit():
+        rondas = int(entrada)
+    else:
+        rondas = -1
+    if rondas < 3 or rondas > 10:
+        print("Valor inválido. Se establecerá en 5 por defecto.")
+        rondas = 5
 
-print("¿Cuántas rondas desean jugar (mínimo 3, máximo 10)? ")
-entrada = input()
+    return rondas
 
-if entrada.isdigit():
-    rondas = int(entrada)
-else:
-    rondas = -1 
+def pedir_carta():
+    while True:
+        entrada = input("Elige una carta (1-3): ")
+        if entrada.isdigit():
+            carta = int(entrada)
+            if 1 <= carta <= 3:
+                return carta
 
-if rondas < 3 or rondas > 10:
-    print("Valor inválido. Se establecerá en 5 por defecto.")
-    rondas = 5
+        print("Carta inválida.")
 
-print(f"¡Genial! Jugarán {rondas} rondas.")
-print("Pulse Enter para comenzar el juego...")
-input()
-limpiar()
+def crear_partida():
+    limpiar()
+    print("¡Bienvenido a Cardo!")
 
-partida = {
-    "jugador1": jugador1,
-    "jugador2": jugador2,
-    "rondas": rondas,
-    "rondas_jugadas": []
-}
+    jugador1 = pedir_jugador(1)
+    jugador2 = pedir_jugador(2)
 
-def juego():
+    rondas = pedir_rondas()
+
+    print(f"\n¡Genial! Jugarán {rondas} rondas.")
+    print("Pulse Enter para comenzar el juego...")
+    input()
+    limpiar()
+
+    partida = {
+        "jugador1": jugador1,
+        "jugador2": jugador2,
+        "rondas": rondas,
+        "rondas_jugadas": []
+    }
+
+    return partida
+
+def juego(partida):
+    jugador1 = partida["jugador1"]
+    jugador2 = partida["jugador2"]
     jugadores = [jugador1, jugador2]
+
     cardoelector = random.choice(jugadores)
+
     if cardoelector == jugador1:
         cardomante = jugador2
-    elif cardoelector == jugador2:
+    else:
         cardomante = jugador1
-    
-    print(f"¡{cardoelector} comienza la partida!\n")
-    
 
+    for ronda in range(partida["rondas"]):
+        limpiar()
 
+        print(f"===== RONDA {ronda + 1} =====\n")
+        print(f"Cardoelector: {cardoelector}")
+        print(f"Cardomante: {cardomante}")
+        print("\nPulse Enter para continuar...")
+        input()
 
-juego()
-    
+        cartas = obtener_cartas()
 
+        print("Cartas del cardoelector:")
+        for carta in cartas:
+            indice = cartas.index(carta) + 1
+            print(f"{indice}) {carta['descripcion']} - {carta['puntaje']}pts")
 
+        carta_cardoelector = pedir_carta()
+        print(f"\nCarta elegida: {cartas[carta_cardoelector - 1]['descripcion']}")
+        print("\nPulse Enter para continuar...")
+        input()
+        limpiar()
+
+        print(f"Turno de {cardomante}")
+
+        print("\n1) Carta A")
+        print("2) Carta B")
+        print("3) Carta C")
+
+        carta_cardomante = pedir_carta()
+
+        if carta_cardoelector == carta_cardomante:
+            print("\n¡Adivinó!")
+        else:
+            print("\nNo adivinó.")
+
+        print("\nPulse Enter para continuar...")
+        input()
+
+        cardoelector, cardomante = cardomante, cardoelector
+
+    print("\nFin de la partida.")
+
+partida = crear_partida()
+juego(partida)
