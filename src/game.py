@@ -5,7 +5,6 @@ from cartas import obtener_cartas
 def limpiar():
     os.system('cls' if os.name == 'nt' else 'clear')
 
-
 def pedir_jugador(numero):
     nombre = input(f"Ingrese el nombre del jugador {numero}: ")
     print(f"\n¡Bienvenido, {nombre}!")
@@ -13,7 +12,6 @@ def pedir_jugador(numero):
     input()
     limpiar()
     return nombre
-
 
 def pedir_rondas():
     print("¿Cuántas rondas desean jugar (mínimo 3, máximo 10)? ")
@@ -57,7 +55,9 @@ def crear_partida():
         "jugador1": jugador1,
         "jugador2": jugador2,
         "rondas": rondas,
-        "rondas_jugadas": []
+        "rondas_jugadas": [],
+        "puntos_jugador1": 0,
+        "puntos_jugador2": 0
     }
 
     return partida
@@ -91,29 +91,67 @@ def juego(partida):
             print(f"{indice}) {carta['descripcion']} - {carta['puntaje']}pts")
 
         carta_cardoelector = pedir_carta()
-        print(f"\nCarta elegida: {cartas[carta_cardoelector - 1]['descripcion']}")
-        print("\nPulse Enter para continuar...")
+        carta_elegida = cartas[carta_cardoelector - 1]
+        print(f"\nCarta elegida: {carta_elegida['descripcion']}")
+        print("\nPulse Enter para pasar el turno al cardomante...")
         input()
         limpiar()
 
         print(f"Turno de {cardomante}")
-
-        print("\n1) Carta A")
-        print("2) Carta B")
-        print("3) Carta C")
+        print("Hora de adivinar la carta del cardoelector...")
+        for carta in cartas:
+            indice = cartas.index(carta) + 1
+            print(f"{indice}) {carta['descripcion']} - {carta['puntaje']}pts")
 
         carta_cardomante = pedir_carta()
 
         if carta_cardoelector == carta_cardomante:
             print("\n¡Adivinó!")
+            puntos = carta_elegida["puntaje"]
+            if puntos  == 1:
+                puntos_ganados = 1
+            elif puntos == 2:
+                puntos_ganados = 1
+            elif puntos == 3:
+                puntos_ganados = 2
+
+            if cardomante == jugador1:
+                partida["puntos_jugador1"] += puntos_ganados
+            else:
+                partida["puntos_jugador2"] += puntos_ganados
+            print(f"{cardomante} gana {puntos_ganados} puntos.")
         else:
             print("\nNo adivinó.")
+            puntos_ganados = carta_elegida["puntaje"]
+            if cardoelector == jugador1:
+                partida["puntos_jugador1"] += puntos_ganados
+            else:
+                partida["puntos_jugador2"] += puntos_ganados
+        
+        partida["rondas_jugadas"].append({
+            "ronda": ronda + 1,
+            "cardoelector": cardoelector,
+            "cardomante": cardomante,
+            "carta_elegida": carta_elegida["descripcion"],
+            "carta_cardomante": cartas[carta_cardomante - 1]["descripcion"],
+            "puntos_ganados": puntos_ganados,
+            "ganador": cardomante if carta_cardoelector == carta_cardomante else None
+        })
+
+        print(f"\nPuntaje actual: {jugador1} - {partida['puntos_jugador1']} pts | {jugador2} - {partida['puntos_jugador2']} pts")
 
         print("\nPulse Enter para continuar...")
         input()
 
         cardoelector, cardomante = cardomante, cardoelector
 
+    if partida["puntos_jugador1"] > partida["puntos_jugador2"]:
+        print(f"\n¡{jugador1} gana la partida con {partida['puntos_jugador1']} puntos!")
+    elif partida["puntos_jugador2"] > partida["puntos_jugador1"]:
+        print(f"\n¡{jugador2} gana la partida con {partida['puntos_jugador2']} puntos!")
+    else:
+        print("\n¡Es un empate!")
+        print(f"\n{jugador1} - {partida['puntos_jugador1']} pts | {jugador2} - {partida['puntos_jugador2']} pts")
     print("\nFin de la partida.")
 
 partida = crear_partida()
