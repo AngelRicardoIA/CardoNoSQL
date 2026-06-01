@@ -52,12 +52,11 @@ def crear_partida():
     limpiar()
 
     partida = {
-        "jugador1": jugador1,
-        "jugador2": jugador2,
-        "rondas": rondas,
-        "rondas_jugadas": [],
-        "puntos_jugador1": 0,
-        "puntos_jugador2": 0
+    "jugador1": jugador1,
+    "jugador2": jugador2,
+    "rondas": rondas,
+    "rondas_jugadas": [],
+    "ganador": None
     }
 
     return partida
@@ -66,6 +65,8 @@ def juego(partida):
     jugador1 = partida["jugador1"]
     jugador2 = partida["jugador2"]
     jugadores = [jugador1, jugador2]
+    puntos_jugador1 = 0
+    puntos_jugador2 = 0
 
     cardoelector = random.choice(jugadores)
 
@@ -116,17 +117,17 @@ def juego(partida):
                 puntos_ganados = 2
 
             if cardomante == jugador1:
-                partida["puntos_jugador1"] += puntos_ganados
+                puntos_jugador1 += puntos_ganados
             else:
-                partida["puntos_jugador2"] += puntos_ganados
+                puntos_jugador2 += puntos_ganados
             print(f"{cardomante} gana {puntos_ganados} puntos.")
         else:
             print("\nNo adivinó.")
             puntos_ganados = carta_elegida["puntaje"]
             if cardoelector == jugador1:
-                partida["puntos_jugador1"] += puntos_ganados
+                puntos_jugador1 += puntos_ganados
             else:
-                partida["puntos_jugador2"] += puntos_ganados
+                puntos_jugador2 += puntos_ganados
         
         partida["rondas_jugadas"].append({
             "ronda": ronda + 1,
@@ -134,24 +135,33 @@ def juego(partida):
             "cardomante": cardomante,
             "carta_elegida": carta_elegida["descripcion"],
             "carta_cardomante": cartas[carta_cardomante - 1]["descripcion"],
+            "adivino": carta_cardoelector == carta_cardomante,
             "puntos_ganados": puntos_ganados,
-            "ganador": cardomante if carta_cardoelector == carta_cardomante else None
+            "ganador": cardomante if carta_cardoelector == carta_cardomante else cardoelector
         })
 
-        print(f"\nPuntaje actual: {jugador1} - {partida['puntos_jugador1']} pts | {jugador2} - {partida['puntos_jugador2']} pts")
-
+        print(f"\nPuntaje actual: {jugador1} - {puntos_jugador1} pts | {jugador2} - {puntos_jugador2} pts")
         print("\nPulse Enter para continuar...")
         input()
 
         cardoelector, cardomante = cardomante, cardoelector
 
-    if partida["puntos_jugador1"] > partida["puntos_jugador2"]:
-        print(f"\n¡{jugador1} gana la partida con {partida['puntos_jugador1']} puntos!")
-    elif partida["puntos_jugador2"] > partida["puntos_jugador1"]:
-        print(f"\n¡{jugador2} gana la partida con {partida['puntos_jugador2']} puntos!")
+    if puntos_jugador1 > puntos_jugador2:
+        print(f"\n¡{jugador1} gana la partida con {puntos_jugador1} puntos!")
+    elif puntos_jugador2 > puntos_jugador1:
+        print(f"\n¡{jugador2} gana la partida con {puntos_jugador2} puntos!")
     else:
         print("\n¡Es un empate!")
-        print(f"\n{jugador1} - {partida['puntos_jugador1']} pts | {jugador2} - {partida['puntos_jugador2']} pts")
+        print(f"\n{jugador1} - {puntos_jugador1} pts | {jugador2} - {puntos_jugador2} pts")
+    
+    if puntos_jugador1 > puntos_jugador2:
+        partida["ganador"] = jugador1
+
+    elif puntos_jugador2 > puntos_jugador1:
+        partida["ganador"] = jugador2
+
+    else:
+        partida["ganador"] = "Empate"
     print("\nFin de la partida.")
 
 partida = crear_partida()
