@@ -22,6 +22,5 @@ for categoria in categorias:
             coleccion.insert_many(data)
         else:
             coleccion.insert_one(data)
-    print(categoria, len(data))
 client.close()
 
