@@ -1,6 +1,7 @@
 import os
 import random
 from cartas import obtener_cartas
+from database import partidas
 
 def limpiar():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -61,7 +62,7 @@ def crear_partida():
 
     return partida
 
-def juego(partida):
+def juego(partida, id_partida):
     jugador1 = partida["jugador1"]
     jugador2 = partida["jugador2"]
     jugadores = [jugador1, jugador2]
@@ -140,19 +141,13 @@ def juego(partida):
             "ganador": cardomante if carta_cardoelector == carta_cardomante else cardoelector
         })
 
+        partidas.update_one({"_id": id_partida}, {"$set": {"rondas_jugadas": partida["rondas_jugadas"]}})
+
         print(f"\nPuntaje actual: {jugador1} - {puntos_jugador1} pts | {jugador2} - {puntos_jugador2} pts")
         print("\nPulse Enter para continuar...")
         input()
 
         cardoelector, cardomante = cardomante, cardoelector
-
-    if puntos_jugador1 > puntos_jugador2:
-        print(f"\n¡{jugador1} gana la partida con {puntos_jugador1} puntos!")
-    elif puntos_jugador2 > puntos_jugador1:
-        print(f"\n¡{jugador2} gana la partida con {puntos_jugador2} puntos!")
-    else:
-        print("\n¡Es un empate!")
-        print(f"\n{jugador1} - {puntos_jugador1} pts | {jugador2} - {puntos_jugador2} pts")
     
     if puntos_jugador1 > puntos_jugador2:
         partida["ganador"] = jugador1
@@ -162,7 +157,61 @@ def juego(partida):
 
     else:
         partida["ganador"] = "Empate"
-    print("\nFin de la partida.")
+
+    partida["puntos_jugador1"] = puntos_jugador1
+    partida["puntos_jugador2"] = puntos_jugador2
+    
+    partidas.update_one({"_id": id_partida}, {"$set": {
+        "ganador": partida["ganador"],
+        "puntos_jugador1": partida["puntos_jugador1"],
+        "puntos_jugador2": partida["puntos_jugador2"]
+    }})
+
+    limpiar()
+
+    if puntos_jugador1 > puntos_jugador2:
+        ganador = jugador1
+        puntos_ganador = puntos_jugador1
+    elif puntos_jugador2 > puntos_jugador1:
+        ganador = jugador2
+        puntos_ganador = puntos_jugador2
+    else:
+        ganador = "Empate"
+        puntos_ganador = puntos_jugador1
+
+    print("=" * 50)
+    print("            RESULTADO FINAL")
+    print("=" * 50)
+
+    if ganador == "Empate":
+        print("\n ¡La partida terminó en empate!")
+    else:
+        print(f"\n ¡Gana {ganador}!")
+
+    print("\nPuntuación final:")
+    print(f"{jugador1}: {puntos_jugador1} pts")
+    print(f"{jugador2}: {puntos_jugador2} pts")
+
+    if ganador != "Empate":
+        print(f"\nTotal de puntos del ganador: {puntos_ganador} pts")
+
+    print("\nResumen de rondas:")
+    for ronda in partida["rondas_jugadas"]:
+        print(
+            f"Ronda {ronda['ronda']} | "
+            f"Ganador: {ronda['ganador']} | "
+            f"Puntos: {ronda['puntos_ganados']}"
+        )
+
+    print("\n" + "=" * 50)
+    print("Fin de la partida")
+    print("=" * 50)
+
+    input("\nPulse Enter para finalizar...")
 
 partida = crear_partida()
-juego(partida)
+resultado = partidas.insert_one(partida)
+id_partida = resultado.inserted_id
+print(f"Partida guardada con ID: {resultado.inserted_id}")
+
+juego(partida, id_partida)
